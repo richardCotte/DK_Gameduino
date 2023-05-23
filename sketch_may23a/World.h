@@ -15,6 +15,7 @@ public:
     World();
     void addPlatform(Platform *platform, int index);
     void draw();
+    Platform **getPlatforms();
 };
 
 World::World() {}
@@ -29,6 +30,10 @@ void World::draw(){
             platform->draw();
         }
     }
+}
+
+Platform** World::getPlatforms() {
+    return platforms;
 }
 
 #endif //DK_REPO_WORLD_H
