@@ -10,89 +10,100 @@
 
 class Player {
 private:
-    int x, y; // Position du joueur
-    int vy;   // Vitesse verticale (pour le saut)
-    int height;
-    int width;
-    int jumpHeight;
-    bool isJumping = false; // Statut de saut
-    bool isGoingDown = false;
-    int pv;
-    int sprite; //type a changer
-    bool isClimbingLadder;
+	int x, y; // Position du joueur
+	int vy = 1;   // Vitesse verticale (pour la gravité)
+	int height;
+	int width;
+	int jumpHeight;
+	bool isOnTheGround;
+	int pv;
+	int sprite; //type a changer
+	bool isClimbingLadder;
 
-    bool isAboveThePlatform(int vitesse, Platform *platform);
+	bool isOnThePlatform(Platform* platform);
 
 public:
-    Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv, int sprite);
+	Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv, int sprite);
 
-    void jump();
+	void update(World* world);
 
-    void move();
+	void draw();
 
-    void update(World *world);
-
-    void draw();
-
-    void climb_ladder();
-
-    void death();
+	void death();
 };
 
 Player::Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv,
-               int sprite) : x(startX), y(startY), width(playerWidth), height(playerHeight),
-                             jumpHeight(definedJumpHeight), pv(startPv), sprite(sprite) {}
+	int sprite) : x(startX), y(startY), width(playerWidth), height(playerHeight),
+	jumpHeight(definedJumpHeight), pv(startPv), sprite(sprite) {}
 
-bool Player::isAboveThePlatform(int vitesse, Platform *platform) {
-    return y + height <= platform->getY() && platform->getX() + platform->getWidth() > x && x > platform->getX() && y + height >= platform->getY() - vitesse;
+bool Player::isOnThePlatform(Platform* platform) {
+	// Offset du sol : si le joueur est déjà au sol, l'offset est de 1, sinon 0
+	const int groundOffset = isOnTheGround ? 1 : 0;
+
+	// Calcul des coordonnées des rayons de détection gauche et droit
+	const int leftRayY = y + height - groundOffset;
+	const int rightRayY = y + height - groundOffset;
+	const int rayHeight = gb.display.height() - (y + height);
+
+	// Détection de collision avec les rayons de détection gauche et droit
+	bool isLeftRayTouching = gb.collide.rectRect(x, leftRayY, 1, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
+	bool isRightRayTouching = gb.collide.rectRect(x + width - 1, rightRayY, 1, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
+
+	// Détection de collision avec la plateforme
+	bool isPlayerTouching = gb.collide.rectRect(x, y, width, height + 1 + vy, platform->getX(), platform->getY(), platform->getWidth(), platform->getHeight());
+
+	// Vérification si le joueur est sur la plateforme
+	return (isLeftRayTouching || isRightRayTouching) && isPlayerTouching;
 }
 
-void Player::update(World *world) {
-    // Contrôle du mouvement horizontal
-    if (gb.buttons.repeat(BUTTON_LEFT, 0)) {
-        x--;
-    }
-    if (gb.buttons.repeat(BUTTON_RIGHT, 0)) {
-        x++;
-    }
+void Player::update(World* world) {
+	// Contrôle du mouvement horizontal
+	if (gb.buttons.repeat(BUTTON_LEFT, 0) && x > 0) {
+		x--;
+	}
+	if (gb.buttons.repeat(BUTTON_RIGHT, 0) && x + width < 79) {
+		x++;
+	}
 
-    // Contrôle du saut
-    if (gb.buttons.pressed(BUTTON_A) && !isJumping) {
-        isJumping = true;
-        vy = -jumpHeight; // vitesse initiale de saut
-    }
+	// Vérification si le joueur est sur une plateforme
+	bool foundPlatform = false;
+	Platform** platforms = world->getPlatforms();
+	for (int i = 19; i >= 0; i--) {
+		if (platforms[i] != nullptr && isOnThePlatform(platforms[i])) {
+			// Le joueur est sur une plateforme
+			foundPlatform = true;
+			isOnTheGround = true;
+			vy = 0;
+			y = platforms[i]->getY() - height;
+			break;
+		}
+	}
 
-//     Mise à jour de la physique du saut
-    if (isJumping) {
-        y += vy;
-        vy++; // gravité
-        if (vy > 0) isGoingDown = true;
-        Platform **platforms = world->getPlatforms();
-        for (int i = 19; i >= 0; --i) {
-            if (platforms[i] != nullptr) {
-//                if (platforms[i] >)
-                if (isGoingDown && Player::isAboveThePlatform(vy, platforms[i])) {
-                    gb.display.print(isGoingDown);
-                    y = platforms[i]->getY() - height;
-                    isJumping = false;
-                    isGoingDown = false;
-                }
-            }
-        }
-    }
-//    if (isJumping) {
-//        y += vy;
-//        vy++; // gravité
-//        if (y >= 50) { // supposons que le sol se trouve à y=100
-//            y = 50;
-//            isJumping = false;
-//        }
-//    }
+	// Gestion de la gravité et du saut
+	if (foundPlatform) {
+		// Le joueur est sur une plateforme
+		vy = 0;
+	}
+	else {
+		// Le joueur est dans les airs
+		isOnTheGround = false;
+		// Gestion de la gravité
+		y += vy;
+		vy++;
+	}
+
+	// Gestion du saut
+	if (gb.buttons.pressed(BUTTON_A) && isOnTheGround) {
+		vy = -jumpHeight;
+	}
 }
 
 void Player::draw() {
-    gb.display.setColor(WHITE);
-    gb.display.fillRect(x, y, width, height); // dessine le joueur comme un carré blanc de 10x10
+	gb.display.setColor(WHITE);
+	gb.display.fillRect(x, y, width, height);
+	gb.display.setColor(BLUE);
+	gb.display.fillRect(x, y + height, 1, gb.display.height() - (y + height));
+	gb.display.fillRect(x + width - 1, y + height, 1, gb.display.height() - (y + height));
 }
 
 

@@ -9,31 +9,31 @@
 
 class World {
 private:
-    Platform* platforms[20] = {};
-//    Ladder ladders;
+	Platform* platforms[20] = {};
+	//    Ladder ladders;
 public:
-    World();
-    void addPlatform(Platform *platform, int index);
-    void draw();
-    Platform **getPlatforms();
+	World();
+	void addPlatform(Platform* platform, int index);
+	void draw();
+	Platform** getPlatforms();
 };
 
 World::World() {}
 
 void World::addPlatform(Platform* platform, int index) {
-    platforms[index] = platform;
+	platforms[index] = platform;
 }
 
-void World::draw(){
-    for (Platform* platform : platforms) {
-        if (platform != nullptr) {
-            platform->draw();
-        }
-    }
+void World::draw() {
+	for (Platform* platform : platforms) {
+		if (platform != nullptr) {
+			platform->draw();
+		}
+	}
 }
 
 Platform** World::getPlatforms() {
-    return platforms;
+	return platforms;
 }
 
 #endif //DK_REPO_WORLD_H
