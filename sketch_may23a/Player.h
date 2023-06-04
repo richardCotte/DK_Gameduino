@@ -10,30 +10,43 @@
 
 class Player {
 private:
-	int x, y; // Position du joueur
+	int x, y, goalX, goalY; // Position du joueur et du but
+	int defaultX, defaultY; // Position par défaut en cas de loose ou de win
 	int vy = 1;   // Vitesse verticale (pour la gravité)
-	int height;
-	int width;
+	int height, goalHeight;
+	int width, goalWidth;
 	int jumpHeight;
 	bool isOnTheGround;
-	bool isClimbing;
-	int pv;
-	int sprite; //type a changer
+	int pv, defaultPv;
+	int score;
 
 	bool isOnThePlatform(Platform* platform);
-	bool isOnTheLadder(Ladder* ladder);
+	void drawPlayer();
+	void drawScore();
+	void drawGoal();
+	void drawPv();
+	void hitOrFall();
+	void defaultSpawn();
 
 public:
-	Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv, int sprite);
+	Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv);
 
 	void update(World* world);
 
 	void draw();
 };
 
-Player::Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv,
-	int sprite) : x(startX), y(startY), width(playerWidth), height(playerHeight),
-	jumpHeight(definedJumpHeight), pv(startPv), sprite(sprite) {}
+Player::Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv) : x(startX), y(startY), width(playerWidth), height(playerHeight),
+	jumpHeight(definedJumpHeight), pv(startPv) {
+	score = 0;
+	goalX = 38;
+	goalY = 3;
+	goalHeight = 4;
+	goalWidth = 4;
+	defaultX = startX;
+	defaultY = startY;
+	defaultPv = startPv;
+}
 
 bool Player::isOnThePlatform(Platform* platform) {
 	// Offset du sol : si le joueur est déjà au sol, l'offset est de 1, sinon 0
@@ -96,18 +109,70 @@ void Player::update(World* world) {
 
 	// Gestion du saut
 	if (gb.buttons.pressed(BUTTON_A) && isOnTheGround) {
-		//Son de saut
+		// Son de saut
 		gb.sound.play("/sound/jump.wav");
 		vy = -jumpHeight;
+	}
+
+	bool isPlayerTouching = gb.collide.rectRect(x, y, width, height + vy, goalX, goalY, goalWidth, goalHeight);
+
+	// Gestion du score et remise a 0
+	if (isPlayerTouching) {
+		score++;
+		defaultSpawn();
+	}
+
+	if (y > 63) {
+		hitOrFall();
 	}
 }
 
 void Player::draw() {
+	drawPlayer();
+	drawGoal();
+	drawScore();
+	drawPv();
+}
+
+void Player::drawPlayer() {
+	// Dessin du joueur
 	gb.display.setColor(YELLOW);
 	gb.display.fillRect(x, y, width, height);
 	gb.display.setColor(BLUE);
 	gb.display.fillRect(x, y + height, 1, gb.display.height() - (y + height));
 	gb.display.fillRect(x + width - 1, y + height, 1, gb.display.height() - (y + height));
+}
+
+void Player::drawGoal() {
+	// Dessin de l'objectif
+	gb.display.setColor(YELLOW);
+	gb.display.fillRect(goalX, goalY, goalWidth, goalHeight);
+}
+
+void Player::drawScore() {
+	gb.display.setColor(WHITE);
+	gb.display.print("Score : ");
+	gb.display.print(score);
+}
+
+void Player::drawPv() {
+	gb.display.setColor(RED);
+	gb.display.print("   Pv : ");
+	gb.display.print(pv);
+}
+
+void Player::hitOrFall() {
+	defaultSpawn();
+	pv--;
+	if (pv == 0) {
+		score = 0;
+		pv = defaultPv;
+	}
+}
+
+void Player::defaultSpawn() {
+	x = defaultX;
+	y = defaultY;
 }
 
 
