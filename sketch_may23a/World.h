@@ -9,7 +9,7 @@
 
 class World {
 private:
-    Platform* platforms[20] = {};
+    Platform* platforms[43] = {};
 //    Ladder ladders;
 public:
     World();

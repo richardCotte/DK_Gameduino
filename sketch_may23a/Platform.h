@@ -12,11 +12,11 @@ private:
     int height;
     int width;
 public:
-    Platform(int platX, int platY, int platHeight, int platWidth);
+    Platform(int platX, int platY, int platWidth, int platHeight);
     void draw();
 };
 
-Platform::Platform(int platX, int platY, int platHeight, int platWidth) : x(platX), y(platY), height(platHeight), width(platWidth) {}
+Platform::Platform(int platX, int platY, int platWidth, int platHeight) : x(platX), y(platY), width(platWidth), height(platHeight) {}
 
 void Platform::draw() {
     gb.display.setColor(RED);
