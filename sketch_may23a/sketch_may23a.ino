@@ -15,7 +15,7 @@ int playerHeight = 6;
 int playerWidth = 2;
 int playerJumpHeight = 3;
 int playerStartPv = 3;
-int barrelSize = 5;
+int barrelSize = 3;
 int barrelSpeed = 1;
 
 void setup() {
@@ -26,10 +26,9 @@ void setup() {
 
 	player = new Player(playerStartX, playerStartY, playerWidth, playerHeight, playerJumpHeight, playerStartPv);
 	world = new World();
-	barrel = new Barrel(barrelSize, 4, 4, barrelSpeed);
-	world->addBarrel(barrel, 0);
 
 	createPlateforms(world);
+	createBarrels(world);
 }
 
 void loop() {
@@ -39,6 +38,14 @@ void loop() {
 	player->draw();
 	world->draw();
 	world->update();
+}
+
+void createBarrels(World* world) {
+	for (int i = 0; i <= 15; i++)
+	{
+		barrel = new Barrel(barrelSize, random(0 + barrelSize / 2, 79 - barrelSize / 2), 0 - barrelSize, barrelSpeed, random(20, 600));
+		world->addBarrel(barrel, i);
+	}
 }
 
 void createPlateforms(World* world) {

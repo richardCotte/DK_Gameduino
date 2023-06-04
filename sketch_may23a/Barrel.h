@@ -5,22 +5,23 @@ class Barrel
 {
 private:
 	int barrelSize;
-    int barrelPosX;
-    int barrelPosY;
-    int barrelSpeed;
+	int barrelPosX;
+	int barrelPosY;
+	int barrelSpeed;
+	int barrelTimeOffset;
 public:
-	Barrel(int barrelSize, int barrelPosX, int barrelPosY, int barrelSpeed);
+	Barrel(int barrelSize, int barrelPosX, int barrelPosY, int barrelSpeed, int barrelTimeOffset);
 	void draw();
-    void update();
+	void update();
 	int getX();
 	int getY();
-    int getSize();
-    int getSpeed();
-    void setX(int x);
-    void setY(int y);
+	int getSize();
+	int getSpeed();
+	void setX(int x);
+	void setY(int y);
 };
 
-Barrel::Barrel(int barrelSize, int barrelPosX, int barrelPosY, int barrelSpeed) : barrelPosX(barrelPosX), barrelPosY(barrelPosY), barrelSize(barrelSize), barrelSpeed(barrelSpeed) {}
+Barrel::Barrel(int barrelSize, int barrelPosX, int barrelPosY, int barrelSpeed, int barrelTimeOffset) : barrelPosX(barrelPosX), barrelPosY(barrelPosY), barrelSize(barrelSize), barrelSpeed(barrelSpeed), barrelTimeOffset(barrelTimeOffset) {}
 
 void Barrel::draw() {
 	gb.display.setColor(BROWN);
@@ -28,10 +29,15 @@ void Barrel::draw() {
 }
 
 void Barrel::update() {
-    barrelPosY += barrelSpeed;
-    if (barrelPosY > 63) {
-        barrelPosY = 0;
-    }
+	if (barrelTimeOffset > 0) {
+		barrelTimeOffset--;
+	}
+	else {
+		barrelPosY += barrelSpeed;
+		if (barrelPosY > 63) {
+			barrelPosY = 0;
+		}
+	}
 }
 
 int Barrel::getX() {
@@ -43,19 +49,19 @@ int Barrel::getY() {
 }
 
 int Barrel::getSize() {
-    return barrelSize;
+	return barrelSize;
 }
 
 int Barrel::getSpeed() {
-    return barrelSpeed;
+	return barrelSpeed;
 }
 
 void Barrel::setX(int x) {
-    barrelPosX = x;
+	barrelPosX = x;
 }
 
 void Barrel::setY(int y) {
-    barrelPosY = y;
+	barrelPosY = y;
 }
 
 #endif // !DK_REPO_BARREL_H

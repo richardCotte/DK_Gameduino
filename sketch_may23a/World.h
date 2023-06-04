@@ -11,7 +11,7 @@
 class World {
 private:
 	Platform* platforms[22] = {};
-	Barrel* barrels[20] = {};
+	Barrel* barrels[15] = {};
 public:
 	World();
 	void addPlatform(Platform* platform, int index);

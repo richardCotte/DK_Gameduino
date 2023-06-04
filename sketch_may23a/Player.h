@@ -7,6 +7,7 @@
 
 #include "World.h"
 #include "Platform.h"
+#include "Barrel.h"
 
 class Player {
 private:
@@ -21,6 +22,7 @@ private:
 	int score;
 
 	bool isOnThePlatform(Platform* platform);
+	bool isTouchingBarrel(Barrel* barrel);
 	void drawPlayer();
 	void drawScore();
 	void drawGoal();
@@ -37,7 +39,7 @@ public:
 };
 
 Player::Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv) : x(startX), y(startY), width(playerWidth), height(playerHeight),
-	jumpHeight(definedJumpHeight), pv(startPv) {
+jumpHeight(definedJumpHeight), pv(startPv) {
 	score = 0;
 	goalX = 38;
 	goalY = 3;
@@ -71,6 +73,10 @@ bool Player::isOnThePlatform(Platform* platform) {
 	return (isLeftRayTouching || isRightRayTouching) && isPlayerTouching;
 }
 
+bool Player::isTouchingBarrel(Barrel* barrel) {
+	return gb.collide.rectRect(x, y, width, height + 1 + vy, barrel->getX(), barrel->getY(), barrel->getSize(), barrel->getSize());
+}
+
 void Player::update(World* world) {
 	// Contrôle du mouvement horizontal
 	if (gb.buttons.repeat(BUTTON_LEFT, 0) && x > 0) {
@@ -83,7 +89,7 @@ void Player::update(World* world) {
 	// Vérification si le joueur est sur une plateforme
 	bool foundPlatform = false;
 	Platform** platforms = world->getPlatforms();
-	for (int i = 19; i >= 0; i--) {
+	for (int i = 22; i >= 0; i--) {
 		if (platforms[i] != nullptr && isOnThePlatform(platforms[i])) {
 			// Le joueur est sur une plateforme
 			foundPlatform = true;
@@ -114,16 +120,24 @@ void Player::update(World* world) {
 		vy = -jumpHeight;
 	}
 
-	bool isPlayerTouching = gb.collide.rectRect(x, y, width, height + vy, goalX, goalY, goalWidth, goalHeight);
+	bool isPlayerTouchingGoal = gb.collide.rectRect(x, y, width, height + vy, goalX, goalY, goalWidth, goalHeight);
 
 	// Gestion du score et remise a 0
-	if (isPlayerTouching) {
+	if (isPlayerTouchingGoal) {
+		gb.sound.play("/sound/win.wav");
 		score++;
 		defaultSpawn();
 	}
 
 	if (y > 63) {
 		hitOrFall();
+	}
+
+	Barrel** barrels = world->getBarrels();
+	for (int i = 15; i >= 0; i--) {
+		if (barrels[i] != nullptr && isTouchingBarrel(barrels[i])) {
+			hitOrFall();
+		}
 	}
 }
 
@@ -164,9 +178,11 @@ void Player::drawPv() {
 void Player::hitOrFall() {
 	defaultSpawn();
 	pv--;
+	gb.sound.play("/sound/hit.wav");
 	if (pv == 0) {
 		score = 0;
 		pv = defaultPv;
+		gb.sound.play("/sound/death.wav");
 	}
 }
 
