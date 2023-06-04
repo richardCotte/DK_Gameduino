@@ -16,11 +16,12 @@ private:
 	int width;
 	int jumpHeight;
 	bool isOnTheGround;
+	bool isClimbing;
 	int pv;
 	int sprite; //type a changer
-	bool isClimbingLadder;
 
 	bool isOnThePlatform(Platform* platform);
+	bool isOnTheLadder(Ladder* ladder);
 
 public:
 	Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv, int sprite);
@@ -28,8 +29,6 @@ public:
 	void update(World* world);
 
 	void draw();
-
-	void death();
 };
 
 Player::Player(int startX, int startY, int playerWidth, int playerHeight, int definedJumpHeight, int startPv,
@@ -43,11 +42,14 @@ bool Player::isOnThePlatform(Platform* platform) {
 	// Calcul des coordonnées des rayons de détection gauche et droit
 	const int leftRayY = y + height - groundOffset;
 	const int rightRayY = y + height - groundOffset;
+	const int leftRayX = x;
+	const int rightRayX = x + width - 1;
+	const int rayWidth = 1;
 	const int rayHeight = gb.display.height() - (y + height);
 
 	// Détection de collision avec les rayons de détection gauche et droit
-	bool isLeftRayTouching = gb.collide.rectRect(x, leftRayY, 1, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
-	bool isRightRayTouching = gb.collide.rectRect(x + width - 1, rightRayY, 1, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
+	bool isLeftRayTouching = gb.collide.rectRect(leftRayX, leftRayY, rayWidth, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
+	bool isRightRayTouching = gb.collide.rectRect(rightRayX, rightRayY, rayWidth, rayHeight, platform->getX(), platform->getY(), platform->getWidth(), 1);
 
 	// Détection de collision avec la plateforme
 	bool isPlayerTouching = gb.collide.rectRect(x, y, width, height + 1 + vy, platform->getX(), platform->getY(), platform->getWidth(), platform->getHeight());
@@ -94,12 +96,14 @@ void Player::update(World* world) {
 
 	// Gestion du saut
 	if (gb.buttons.pressed(BUTTON_A) && isOnTheGround) {
+		//Son de saut
+		gb.sound.play("/sound/jump.wav");
 		vy = -jumpHeight;
 	}
 }
 
 void Player::draw() {
-	gb.display.setColor(WHITE);
+	gb.display.setColor(YELLOW);
 	gb.display.fillRect(x, y, width, height);
 	gb.display.setColor(BLUE);
 	gb.display.fillRect(x, y + height, 1, gb.display.height() - (y + height));
