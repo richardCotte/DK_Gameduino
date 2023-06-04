@@ -2,10 +2,12 @@
 #include "Player.h"
 #include "World.h"
 #include "Platform.h"
+#include "Barrel.h"
 
 Player* player;
 Platform* platform;
 World* world;
+Barrel* barrel;
 
 int playerStartX = 10;
 int playerStartY = 50;
@@ -13,6 +15,8 @@ int playerHeight = 6;
 int playerWidth = 2;
 int playerJumpHeight = 3;
 int playerStartPv = 3;
+int barrelSize = 3;
+int barrelSpeed = 1;
 
 void setup() {
 	gb.begin();
@@ -24,6 +28,7 @@ void setup() {
 	world = new World();
 
 	createPlateforms(world);
+	createBarrels(world);
 }
 
 void loop() {
@@ -32,6 +37,15 @@ void loop() {
 	player->update(world);
 	player->draw();
 	world->draw();
+	world->update();
+}
+
+void createBarrels(World* world) {
+	for (int i = 0; i <= 15; i++)
+	{
+		barrel = new Barrel(barrelSize, random(0 + barrelSize / 2, 79 - barrelSize / 2), 0 - barrelSize, barrelSpeed, random(20, 600));
+		world->addBarrel(barrel, i);
+	}
 }
 
 void createPlateforms(World* world) {
