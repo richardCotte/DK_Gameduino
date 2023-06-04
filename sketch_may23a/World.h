@@ -19,6 +19,7 @@ public:
 	void draw();
 	void update();
 	Platform** getPlatforms();
+	Barrel** getBarrels();
 };
 
 World::World() {}

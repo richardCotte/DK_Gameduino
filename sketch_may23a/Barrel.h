@@ -28,7 +28,7 @@ void Barrel::draw() {
 }
 
 void Barrel::update() {
-    barrelPosY++;
+    barrelPosY += barrelSpeed;
     if (barrelPosY > 63) {
         barrelPosY = 0;
     }
